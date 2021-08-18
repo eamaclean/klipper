@@ -10,6 +10,10 @@
 #include "internal.h" // GPIO
 #include "sched.h" // sched_shutdown
 
+#if CONFIG_MACH_SAME70B
+#include "same70b_compat.h" // Header compatibility
+#endif
+
 #define MAX_PWM 255
 DECL_CONSTANT("PWM_MAX", MAX_PWM);
 
@@ -45,7 +49,7 @@ static const struct gpio_tc_info tc_regs[] = {
     { GPIO('C', 29), 'B', ID_TC7, &TC2->TC_CHANNEL[1].TC_RB },
     { GPIO('D', 8),  'B', ID_TC8, &TC2->TC_CHANNEL[2].TC_RB },
 #endif
-#elif CONFIG_MACH_SAM4
+#elif CONFIG_MACH_SAM4 || CONFIG_MACH_SAME70B
     { GPIO('A', 0),  'B', ID_TC0, &TC0->TC_CHANNEL[0].TC_RA },
     { GPIO('A', 15), 'B', ID_TC1, &TC0->TC_CHANNEL[1].TC_RA },
     { GPIO('A', 26), 'B', ID_TC2, &TC0->TC_CHANNEL[2].TC_RA },
@@ -58,13 +62,21 @@ static const struct gpio_tc_info tc_regs[] = {
     { GPIO('C', 24), 'B', ID_TC3, &TC1->TC_CHANNEL[0].TC_RB },
     { GPIO('C', 27), 'B', ID_TC4, &TC1->TC_CHANNEL[1].TC_RB },
     { GPIO('C', 30), 'B', ID_TC5, &TC1->TC_CHANNEL[2].TC_RB },
-#if CONFIG_MACH_SAM4E8E
+#if CONFIG_MACH_SAM4E8E || CONFIG_MACH_SAME70B
     { GPIO('C', 5),  'B', ID_TC6, &TC2->TC_CHANNEL[0].TC_RA },
     { GPIO('C', 8),  'B', ID_TC7, &TC2->TC_CHANNEL[1].TC_RA },
     { GPIO('C', 11), 'B', ID_TC8, &TC2->TC_CHANNEL[2].TC_RA },
     { GPIO('C', 6),  'B', ID_TC6, &TC2->TC_CHANNEL[0].TC_RB },
     { GPIO('C', 9),  'B', ID_TC7, &TC2->TC_CHANNEL[1].TC_RB },
     { GPIO('C', 12), 'B', ID_TC8, &TC2->TC_CHANNEL[2].TC_RB },
+#endif
+#if CONFIG_MACH_SAME70B
+    { GPIO('E', 0),  'B', ID_TC9,  &TC3->TC_CHANNEL[0].TC_RA },
+    { GPIO('E', 3),  'B', ID_TC10, &TC3->TC_CHANNEL[1].TC_RA },
+    { GPIO('D', 21), 'C', ID_TC11, &TC3->TC_CHANNEL[2].TC_RA },
+    { GPIO('E', 1),  'B', ID_TC9,  &TC3->TC_CHANNEL[0].TC_RB },
+    { GPIO('E', 4),  'B', ID_TC10, &TC3->TC_CHANNEL[1].TC_RB },
+    { GPIO('D', 22), 'C', ID_TC11, &TC3->TC_CHANNEL[2].TC_RB },
 #endif
 #endif
 };
@@ -114,7 +126,11 @@ gpio_tc_setup(uint8_t pin, uint32_t cycle_time, uint8_t val)
 
     // Map cycle_time to clock divisor
     uint32_t div = TC_CMR_TCCLKS_TIMER_CLOCK4;
+    #if CONFIG_MACH_SAME70B
+    if (cycle_time < (MAX_PWM*12 + MAX_PWM*3) / 2)
+    #else
     if (cycle_time < (MAX_PWM*8 + MAX_PWM*2) / 2)
+    #endif
         div = TC_CMR_TCCLKS_TIMER_CLOCK1;
     else if (cycle_time < (MAX_PWM*32 + MAX_PWM*8) / 2)
         div = TC_CMR_TCCLKS_TIMER_CLOCK2;
@@ -187,6 +203,26 @@ static const struct gpio_pwm_info pwm_regs[] = {
     { GPIO('A', 15), 3, 'C' },
     { GPIO('C', 3),  3, 'B' },
     { GPIO('C', 22), 3, 'B' },
+#elif CONFIG_MACH_SAME70B
+    { GPIO('A', 1), 0, 'A' },
+    { GPIO('A', 20), 1, 'B' },
+    { GPIO('A', 30), 2, 'A' },
+    { GPIO('B', 5), 0, 'B' },
+    { GPIO('B', 12), 1, 'A' },
+    { GPIO('B', 13), 2, 'A' },
+    { GPIO('C', 0), 0, 'B' },
+    { GPIO('C', 1), 1, 'B' },
+    { GPIO('C', 2), 2, 'B' },
+    { GPIO('C', 3), 3, 'B' },
+    { GPIO('C', 15), 3, 'B' },
+    { GPIO('C', 18), 1, 'B' },
+    { GPIO('C', 20), 2, 'B' },
+    { GPIO('C', 22), 3, 'B' },
+    { GPIO('D', 10), 0, 'B' },
+    { GPIO('D', 24), 0, 'A' },
+    { GPIO('D', 25), 1, 'A' },
+    { GPIO('D', 26), 2, 'A' },
+    { GPIO('D', 27), 3, 'A' },
 #endif
 };
 

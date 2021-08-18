@@ -11,11 +11,18 @@
 #include "internal.h" // UOTGHS
 #include "sched.h" // DECL_INIT
 
+#if CONFIG_MACH_SAME70B
+#include "same70b_compat.h" // Header compatibility
+#endif
+
 #define EP_SIZE(s) ((s)==64 ? UOTGHS_DEVEPTCFG_EPSIZE_64_BYTE :         \
                     ((s)==32 ? UOTGHS_DEVEPTCFG_EPSIZE_32_BYTE :        \
                      ((s)==16 ? UOTGHS_DEVEPTCFG_EPSIZE_16_BYTE :       \
                       UOTGHS_DEVEPTCFG_EPSIZE_8_BYTE)))
 
+#if CONFIG_MACH_SAME70B
+#define USBHS_RAM_ADDR 0xa0100000u // Atmel don't even include this in their headers
+#endif
 #define usb_fifo(ep) ((void*)UOTGHS_RAM_ADDR + ((ep) * 0x8000))
 
 static void
@@ -216,8 +223,12 @@ usbserial_init(void)
         ;
 
     // Enable USB
+    #if CONFIG_MACH_SAM3
     UOTGHS->UOTGHS_CTRL = (UOTGHS_CTRL_UIMOD | UOTGHS_CTRL_OTGPADE
                            | UOTGHS_CTRL_USBE);
+    #elif CONFIG_MACH_SAME70B
+    UOTGHS->UOTGHS_CTRL = (UOTGHS_CTRL_UIMOD | UOTGHS_CTRL_USBE);
+    #endif
     UOTGHS->UOTGHS_DEVCTRL = UOTGHS_DEVCTRL_SPDCONF_FORCED_FS;
 
     // Enable interrupts
