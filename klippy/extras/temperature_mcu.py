@@ -1,4 +1,4 @@
-# Support for micro-controller chip based temperature sensors
+# # Support for micro-controller chip based temperature sensors
 #
 # Copyright (C) 2020  Kevin O'Connor <kevin@koconnor.net>
 #
@@ -63,7 +63,7 @@ class PrinterTemperatureMCU:
         # Run MCU specific configuration
         cfg_funcs = [
             ('rp2040', self.config_rp2040),
-            ('sam3', self.config_sam3), ('sam4', self.config_sam4),
+            ('sam3', self.config_sam3), ('sam4', self.config_sam4), ('same70q20b', self.config_sam7),
             ('samd21', self.config_samd21), ('samd51', self.config_samd51),
             ('stm32f1', self.config_stm32f1), ('stm32f2', self.config_stm32f2),
             ('stm32f4', self.config_stm32f4),
@@ -100,6 +100,9 @@ class PrinterTemperatureMCU:
     def config_sam4(self):
         self.slope = 3.3 / .004700
         self.base_temperature = self.calc_base(27., 1.44 / 3.3)
+    def config_sam7(self):
+        self.slope = 3.3 / .00233
+        self.base_temperature = self.calc_base(25., 0.72 / 3.3)
     def config_samd21(self, addr=0x00806030):
         def get1v(val):
             if val & 0x80:
